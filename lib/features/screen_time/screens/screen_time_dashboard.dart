@@ -1,21 +1,34 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+
 import '../models/app_usage.dart';
 import '../models/installed_app.dart';
+import '../models/app_limit.dart';
+
 import '../services/usage_stats_service.dart';
 import '../services/installed_apps_service.dart';
+import '../services/app_limit_service.dart';
+
+import 'set_app_limit_screen.dart';
+import 'app_limit_detail_screen.dart';
 
 class ScreenTimeDashboard extends StatefulWidget {
   const ScreenTimeDashboard({super.key});
 
   @override
-  State<ScreenTimeDashboard> createState() => _ScreenTimeDashboardState();
+  State<ScreenTimeDashboard> createState() =>
+      _ScreenTimeDashboardState();
 }
 
 class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
   bool _loading = true;
+
   List<AppUsage> _usages = [];
-  List<InstalledApp> _installed = [];
+  List<InstalledApp> _installedApps = [];
+  List<AppLimit> _limits = [];
+
+  AppLimit? _lastDeletedLimit;
+  bool _snackBarVisible = false;
 
   @override
   void initState() {
@@ -23,20 +36,27 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
     _loadData();
   }
 
+  // ================= DATA =================
   Future<void> _loadData() async {
+    if (mounted) setState(() => _loading = true);
+
     final usage = await UsageStatsService.getTodayUsage();
     final installed = await InstalledAppsService.getInstalledApps();
+    final limits = await AppLimitService.instance.getAllLimits();
+
+    if (!mounted) return;
 
     setState(() {
       _usages = usage;
-      _installed = installed;
+      _installedApps = installed;
+      _limits = limits;
       _loading = false;
     });
   }
 
-  InstalledApp? _getInstalledInfo(String packageName) {
+  InstalledApp? _installedFor(String packageName) {
     try {
-      return _installed.firstWhere(
+      return _installedApps.firstWhere(
         (a) => a.packageName == packageName,
       );
     } catch (_) {
@@ -44,10 +64,55 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
     }
   }
 
+  AppLimit? _limitFor(String packageName) {
+    try {
+      return _limits.firstWhere(
+        (l) => l.packageName == packageName,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ================= SNACKBAR =================
+  void _showUndoSnackBar() {
+    if (_lastDeletedLimit == null || _snackBarVisible) return;
+
+    _snackBarVisible = true;
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+          SnackBar(
+            content: const Text('App limit deleted'),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'UNDO',
+              onPressed: () async {
+                final limit = _lastDeletedLimit;
+                if (limit == null) return;
+
+                await AppLimitService.instance.saveLimit(limit);
+                if (!mounted) return;
+
+                _lastDeletedLimit = null;
+                _snackBarVisible = false;
+                await _loadData();
+              },
+            ),
+          ),
+        )
+        .closed
+        .then((_) {
+          _snackBarVisible = false;
+          _lastDeletedLimit = null;
+        });
+  }
+
+  // ================= UI =================
   @override
   Widget build(BuildContext context) {
     final totalMinutes =
-        _usages.fold<int>(0, (sum, item) => sum + item.totalMinutes);
+        _usages.fold<int>(0, (sum, u) => sum + u.totalMinutes);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F1A20),
@@ -55,52 +120,59 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
         backgroundColor: const Color(0xFF0F1A20),
         elevation: 0,
         title: const Text(
-          'Screen Time Control',
+          "Screen Time Control",
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: Colors.blue,
+        backgroundColor: const Color(0xFF151F28),
+        child: _loading
+            ?  ListView(
+                physics: AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(height: 300),
+                  Center(child: CircularProgressIndicator()),
+                ],
+              )
+            : ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
                 children: [
                   _buildSummaryCard(totalMinutes),
                   const SizedBox(height: 20),
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: _usages.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        return _buildUsageTile(_usages[index]);
-                      },
-                    ),
-                  ),
+                  ..._usages.map(_buildUsageTile),
+                  const SizedBox(height: 24),
+                  _buildAddLimitButton(),
                 ],
               ),
-            ),
+      ),
     );
   }
 
   Widget _buildSummaryCard(int minutes) {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF151F28),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             "Today's screen time",
-            style: TextStyle(color: Colors.white70, fontSize: 15),
+            style: TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 8),
           Text(
             _formatMinutes(minutes),
-            style: const TextStyle(color: Colors.white, fontSize: 32),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -108,85 +180,181 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
   }
 
   Widget _buildUsageTile(AppUsage usage) {
-    final installed = _getInstalledInfo(usage.packageName);
+    final installed = _installedFor(usage.packageName);
+    final limit = _limitFor(usage.packageName);
 
     final appName = installed?.appName ?? usage.packageName;
-    final iconWidget = installed == null
-        ? const Icon(Icons.apps, color: Colors.white, size: 26)
-        : Image.memory(
-            base64Decode(installed.iconBase64),
-            width: 30,
-            height: 30,
-          );
+    final iconBase64 = installed?.iconBase64 ?? "";
 
-    const dummyLimit = 60.0;
-    final ratio = (usage.totalMinutes / dummyLimit).clamp(0.0, 1.0);
+    // -------- WARNING LOGIC --------
+    String? warningText;
+    Color? warningColor;
 
-    Color barColor;
-    if (ratio >= 1) {
-      barColor = Colors.red;
-    } else if (ratio >= 0.8) {
-      barColor = Colors.orange;
-    } else {
-      barColor = Colors.green;
+    if (limit != null && limit.limitMinutes > 0) {
+      final ratio = usage.totalMinutes / limit.limitMinutes;
+
+      if (ratio >= 1) {
+        warningText = "⚠ Limit exceeded";
+        warningColor = Colors.red;
+      } else if (ratio >= 0.8) {
+        warningText = "⚠ Almost reached";
+        warningColor = Colors.orange;
+      }
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: iconWidget,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  appName,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14),
-                ),
-              ),
-              Text(
-                '${usage.totalMinutes} min',
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: Container(
-              height: 5,
-              color: Colors.white12,
-              child: FractionallySizedBox(
-                widthFactor: ratio,
-                child: Container(color: barColor),
+    return GestureDetector(
+      onTap: () async {
+        if (limit != null) {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  AppLimitDetailScreen(limit: limit, usage: usage),
+            ),
+          );
+
+          if (!mounted) return;
+
+          if (result is AppLimit) {
+            _lastDeletedLimit = result;
+            await _loadData();
+            _showUndoSnackBar();
+          } else if (result == true) {
+            await _loadData();
+          }
+        } else {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SetAppLimitScreen(
+                preselectedPackageName: usage.packageName,
               ),
             ),
-          ),
-        ],
+          );
+
+          if (result != null && mounted) {
+            await AppLimitService.instance.saveLimit(
+              AppLimit(
+                packageName: result["packageName"],
+                appName: result["appName"],
+                iconBase64: result["iconBase64"],
+                limitMinutes: result["limitMinutes"],
+              ),
+            );
+            await _loadData();
+          }
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF111827),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top row
+            Row(
+              children: [
+                iconBase64.isEmpty
+                    ? const Icon(Icons.apps, color: Colors.white)
+                    : Image.memory(
+                        base64Decode(iconBase64),
+                        width: 32,
+                        height: 32,
+                      ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    appName,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Text(
+                  "${usage.totalMinutes} min",
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // Limit text
+            Text(
+              limit != null
+                  ? "Limit: ${limit.limitMinutes} min/day"
+                  : "No limit set",
+              style: TextStyle(
+                color:
+                    limit != null ? Colors.white60 : Colors.white38,
+                fontSize: 12,
+              ),
+            ),
+
+            // Warning text
+            if (warningText != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                warningText,
+                style: TextStyle(
+                  color: warningColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  String _formatMinutes(int totalMinutes) {
-    final hours = totalMinutes ~/ 60;
-    final minutes = totalMinutes % 60;
-    return '${hours}h ${minutes}m';
+  Widget _buildAddLimitButton() {
+    return ElevatedButton(
+      onPressed: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SetAppLimitScreen()),
+        );
+
+        if (result != null && mounted) {
+          await AppLimitService.instance.saveLimit(
+            AppLimit(
+              packageName: result["packageName"],
+              appName: result["appName"],
+              iconBase64: result["iconBase64"],
+              limitMinutes: result["limitMinutes"],
+            ),
+          );
+          await _loadData();
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF0EA5E9),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+      ),
+      child: const Text(
+        "Add App Limit",
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  String _formatMinutes(int minutes) {
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return "${h}h ${m}m";
   }
 }
