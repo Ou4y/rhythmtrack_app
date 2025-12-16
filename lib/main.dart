@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _checkPermission();
     }
   }
-
+  //test commit
   Future<void> _checkPermission() async {
     final granted = await UsagePermissionChannel.isPermissionGranted();
     setState(() {
