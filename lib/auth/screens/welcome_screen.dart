@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
+import '../widgets/primary_button.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -18,16 +19,16 @@ class WelcomeScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 24),
 
-              
+              // Logo image
               Image.asset(
                 'assets/images/welcome_wave.png',
-                height: 180,
+                height: 180, // same height as before
                 fit: BoxFit.contain,
               ),
 
               const SizedBox(height: 28),
 
-              
+              // Title
               Text(
                 'RhythmTrack',
                 style: GoogleFonts.inter(
@@ -40,7 +41,7 @@ class WelcomeScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-             
+              // Subtitle text
               Text(
                 'Your daily rhythm starts here.',
                 textAlign: TextAlign.center,
@@ -50,49 +51,19 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 160),
+          const SizedBox(height: 160),
 
-              
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF34D399),
-                        Color(0xFF38BDF8),
-                      ],
+              // Create Account button
+              PrimaryButton(
+                text: 'Create Account',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SignupScreen(),
                     ),
-                  ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SignupScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Create Account',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.3,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+                  );
+                },
               ),
 
               const SizedBox(height: 14),
@@ -115,6 +86,8 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
+              const SizedBox(height: 24),
             ],
           ),
         ),
