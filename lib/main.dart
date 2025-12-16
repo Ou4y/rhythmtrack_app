@@ -37,7 +37,7 @@ class _RhythmTrackAppState extends State<RhythmTrackApp> with WidgetsBindingObse
       _checkPermission(); // re-check when user returns from settings
     }
   }
-
+  //test commit
   Future<void> _checkPermission() async {
     final granted = await UsagePermissionChannel.isPermissionGranted();
     setState(() {
