@@ -186,6 +186,22 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
     final appName = installed?.appName ?? usage.packageName;
     final iconBase64 = installed?.iconBase64 ?? "";
 
+    // -------- WARNING LOGIC --------
+    String? warningText;
+    Color? warningColor;
+
+    if (limit != null && limit.limitMinutes > 0) {
+      final ratio = usage.totalMinutes / limit.limitMinutes;
+
+      if (ratio >= 1) {
+        warningText = "⚠ Limit exceeded";
+        warningColor = Colors.red;
+      } else if (ratio >= 0.8) {
+        warningText = "⚠ Almost reached";
+        warningColor = Colors.orange;
+      }
+    }
+
     return GestureDetector(
       onTap: () async {
         if (limit != null) {
@@ -267,6 +283,7 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
               ],
             ),
             const SizedBox(height: 6),
+
             // Limit text
             Text(
               limit != null
@@ -278,6 +295,19 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
                 fontSize: 12,
               ),
             ),
+
+            // Warning text
+            if (warningText != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                warningText,
+                style: TextStyle(
+                  color: warningColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ],
         ),
       ),
