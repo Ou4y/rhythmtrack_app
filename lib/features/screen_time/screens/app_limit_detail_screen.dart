@@ -70,13 +70,14 @@ class _AppLimitDetailScreenState
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F1A20),
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           "App Limit",
           style: TextStyle(color: Colors.white),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
+            icon: const Icon(Icons.delete, color: Color.fromARGB(255, 216, 49, 37)),
             onPressed: _saving ? null : _deleteLimit,
           ),
         ],

@@ -121,7 +121,14 @@ class _SetAppLimitScreenState extends State<SetAppLimitScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F1A20),
         elevation: 0,
-        title: const Text("Set App Limit"),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          style: TextStyle(
+          color: Colors.blue,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          ),
+          "Set App Limit"),
       ),
       body: ListView.builder(
         itemCount: _apps.length,
