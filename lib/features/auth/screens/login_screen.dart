@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../widgets/auth_textfield.dart';
 import '../widgets/primary_button.dart';
-import '../../home/home_screen.dart';
+import '../../../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
