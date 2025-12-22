@@ -19,17 +19,10 @@ dependencies:
   # Screen Time feature dependencies
   app_settings: ^5.1.1
 
-<<<<<<< HEAD
-  supabase_flutter: ^2.5.6
-  google_fonts: ^6.1.0
-
-
-=======
   # UI dependencies
   cupertino_icons: ^1.0.8
-  sqflite: ^2.4.2
-  path: ^1.9.1
->>>>>>> d7d509485187497bc9da6d735f6290ed58722cbc
+  google_fonts: ^6.1.0
+  supabase_flutter: ^1.10.11
 
 dev_dependencies:
   flutter_test:
@@ -44,7 +37,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-<<<<<<< HEAD
   assets:
     - assets/images/
 
@@ -80,6 +72,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-=======
-  
->>>>>>> d7d509485187497bc9da6d735f6290ed58722cbc

@@ -3,12 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'features/auth/screens/welcome_screen.dart';
-
 import 'features/habits/screens/home_screen.dart';
 import 'features/habits/screens/add_habit_screen.dart';
 import 'features/habits/screens/edit_habit_screen.dart';
 import 'features/habits/screens/habit_details_screen.dart';
-
 import 'features/screen_time/screens/screen_time_dashboard.dart';
 import 'features/screen_time/screens/permission_explainer_screen.dart';
 import 'features/screen_time/services/usage_permission_channel.dart';
