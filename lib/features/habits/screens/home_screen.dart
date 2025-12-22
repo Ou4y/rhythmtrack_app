@@ -108,6 +108,14 @@ class HomeScreen extends ConsumerWidget {
                 Navigator.pushNamed(context, '/screen_time_dashboard');
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.chat),
+              title: const Text('AI Chat'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                Navigator.pushNamed(context, '/ai_chat');
+              },
+            ),
           ],
         ),
       ),

@@ -11,6 +11,7 @@ import 'features/habits/screens/habit_details_screen.dart';
 import 'features/screen_time/screens/screen_time_dashboard.dart';
 import 'features/screen_time/screens/permission_explainer_screen.dart';
 import 'features/screen_time/services/usage_permission_channel.dart';
+import 'features/ai_chat/screens/chat_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -119,6 +120,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               return HabitDetailsScreen(habitId: id ?? 0);
             },
             '/screen_time_dashboard': (_) => const ScreenTimeDashboard(),
+            '/ai_chat': (_) => const ChatScreen(),
           },
         );
       },
