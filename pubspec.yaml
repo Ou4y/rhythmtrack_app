@@ -22,7 +22,7 @@ dependencies:
   # UI dependencies
   cupertino_icons: ^1.0.8
   google_fonts: ^6.1.0
-  supabase_flutter: ^1.10.11
+  supabase_flutter: ^2.5.0
 
 dev_dependencies:
   flutter_test:
