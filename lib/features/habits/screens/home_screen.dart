@@ -82,6 +82,35 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black87,
       ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue[100],
+              ),
+              child: const Text('Navigation', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Habits Home'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                // Already on HomeScreen, so just pop drawer
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.timer),
+              title: const Text('Screen Time Dashboard'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                Navigator.pushNamed(context, '/screen_time_dashboard');
+              },
+            ),
+          ],
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: state.isLoading
