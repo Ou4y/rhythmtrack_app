@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'features/ai_chat/services/openai_key_store.dart';
 import 'features/auth/screens/welcome_screen.dart';
 import 'features/habits/screens/home_screen.dart';
 import 'features/habits/screens/add_habit_screen.dart';
@@ -15,7 +15,7 @@ import 'features/ai_chat/screens/chat_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   await Supabase.initialize(
    url: 'https://mvdtympbnmpywfgkyzbe.supabase.co',
     anonKey:
@@ -28,7 +28,7 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
-
+  await OpenAIKeyStore.saveKey('AIzaSyAWJgU2DDm7bxKEQ_iURpjCwqtYsbb1n2I');
   runApp(const ProviderScope(child: MyApp()));
 }
 

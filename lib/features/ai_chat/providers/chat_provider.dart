@@ -12,11 +12,11 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 
   final ChatService _service = ChatService();
 
-  bool isLoading = false;
-
   Future<void> sendMessage(String text) async {
-    state = [...state, ChatMessage(content: text, sender: ChatSender.user)];
-    isLoading = true;
+    state = [
+      ...state,
+      ChatMessage(content: text, sender: ChatSender.user),
+    ];
 
     try {
       final reply = await _service.sendMessage(text);
@@ -24,16 +24,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         ...state,
         ChatMessage(content: reply, sender: ChatSender.ai),
       ];
-    } catch (_) {
+    } catch (e) {
       state = [
         ...state,
         ChatMessage(
-          content: 'Sorry, something went wrong.',
+          content: 'AI Error: $e',
           sender: ChatSender.ai,
         ),
       ];
     }
-
-    isLoading = false;
   }
 }
