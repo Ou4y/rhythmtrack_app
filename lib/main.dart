@@ -28,7 +28,7 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
-  await OpenAIKeyStore.saveKey('');
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
