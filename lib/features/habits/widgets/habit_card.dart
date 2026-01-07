@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/habit.dart';
-import '../screens/habit_details_screen.dart';
 
 class HabitCard extends StatefulWidget {
   final Habit habit;
