@@ -85,7 +85,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         final session = snapshot.data?.session;
 
-        // 🔴 Not logged in
         if (session == null) {
           return const MaterialApp(
             debugShowCheckedModeBanner: false,
@@ -103,9 +102,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           );
         }
 
-        // ✅ Logged in
+       
         return MaterialApp(
           debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      elevation: 6,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(14)),
+      ),
+      backgroundColor: Colors.black87,
+      contentTextStyle: TextStyle(color: Colors.white, fontSize: 14),
+      showCloseIcon: true,
+      closeIconColor: Colors.white,
+    ),
+  ),
+
           home: _permissionGranted!
               ? const HomeScreen()
               : const PermissionExplainerScreen(),
