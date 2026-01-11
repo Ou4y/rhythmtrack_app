@@ -12,6 +12,7 @@ import 'features/screen_time/screens/screen_time_dashboard.dart';
 import 'features/screen_time/screens/permission_explainer_screen.dart';
 import 'features/screen_time/services/usage_permission_channel.dart';
 import 'features/ai_chat/screens/chat_screen.dart';
+import 'features/providers/theme_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,70 +71,72 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
-      builder: (context, snapshot) {
-        // ⏳ Waiting for auth session restoration
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
+    return Consumer(
+      builder: (context, ref, _) {
+        final themeMode = ref.watch(themeModeProvider);
+        return StreamBuilder<AuthState>(
+          stream: Supabase.instance.client.auth.onAuthStateChange,
+          builder: (context, snapshot) {
+            // ⏳ Waiting for auth session restoration
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                theme: lightTheme,
+                darkTheme: darkTheme,
+                themeMode: themeMode,
+                home: const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
 
-        final session = snapshot.data?.session;
+            final session = snapshot.data?.session;
 
-        if (session == null) {
-          return const MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: WelcomeScreen(),
-          );
-        }
+            if (session == null) {
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                theme: lightTheme,
+                darkTheme: darkTheme,
+                themeMode: themeMode,
+                home: const WelcomeScreen(),
+              );
+            }
 
-        // ⏳ Waiting for screen-time permission check
-        if (_permissionGranted == null) {
-          return const MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
+            // ⏳ Waiting for screen-time permission check
+            if (_permissionGranted == null) {
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                theme: lightTheme,
+                darkTheme: darkTheme,
+                themeMode: themeMode,
+                home: const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
 
-       
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-    snackBarTheme: SnackBarThemeData(
-      behavior: SnackBarBehavior.floating,
-      elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(14)),
-      ),
-      backgroundColor: Colors.black87,
-      contentTextStyle: TextStyle(color: Colors.white, fontSize: 14),
-      showCloseIcon: true,
-      closeIconColor: Colors.white,
-    ),
-  ),
-
-          home: _permissionGranted!
-              ? const HomeScreen()
-              : const PermissionExplainerScreen(),
-          routes: {
-            '/add': (_) => const AddHabitScreen(),
-            '/edit': (ctx) {
-              final id = ModalRoute.of(ctx)!.settings.arguments as int?;
-              return EditHabitScreen(habitId: id ?? 0);
-            },
-            '/details': (ctx) {
-              final id = ModalRoute.of(ctx)!.settings.arguments as int?;
-              return HabitDetailsScreen(habitId: id ?? 0);
-            },
-            '/screen_time_dashboard': (_) => const ScreenTimeDashboard(),
-            '/ai_chat': (_) => const ChatScreen(),
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: lightTheme,
+              darkTheme: darkTheme,
+              themeMode: themeMode,
+              home: _permissionGranted!
+                  ? const HomeScreen()
+                  : const PermissionExplainerScreen(),
+              routes: {
+                '/add': (_) => const AddHabitScreen(),
+                '/edit': (ctx) {
+                  final id = ModalRoute.of(ctx)!.settings.arguments as int?;
+                  return EditHabitScreen(habitId: id ?? 0);
+                },
+                '/details': (ctx) {
+                  final id = ModalRoute.of(ctx)!.settings.arguments as int?;
+                  return HabitDetailsScreen(habitId: id ?? 0);
+                },
+                '/screen_time_dashboard': (_) => const ScreenTimeDashboard(),
+                '/ai_chat': (_) => const ChatScreen(),
+              },
+            );
           },
         );
       },

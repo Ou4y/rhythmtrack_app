@@ -97,9 +97,12 @@ class _SetAppLimitScreenState extends State<SetAppLimitScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -117,38 +120,59 @@ class _SetAppLimitScreenState extends State<SetAppLimitScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1A20),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F1A20),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          style: TextStyle(
-          color: Colors.blue,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          ),
-          "Set App Limit"),
+        backgroundColor: theme.appBarTheme.backgroundColor ?? colorScheme.primary,
+        elevation: theme.appBarTheme.elevation,
+        iconTheme: theme.iconTheme,
+        title: Text(
+          "Set App Limit",
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        shape: theme.appBarTheme.shape,
       ),
-      body: ListView.builder(
-        itemCount: _apps.length,
-        itemBuilder: (_, index) {
-          final app = _apps[index];
-          return ListTile(
-            onTap: () => _openLimitPicker(app),
-            leading: app.iconBase64.isEmpty
-                ? const Icon(Icons.apps, color: Colors.white)
-                : Image.memory(
-                    base64Decode(app.iconBase64),
-                    width: 30,
-                    height: 30,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [colorScheme.primary.withOpacity(0.08), colorScheme.secondary.withOpacity(0.08)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: ListView.builder(
+          itemCount: _apps.length,
+          itemBuilder: (_, index) {
+            final app = _apps[index];
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: theme.cardColor.withOpacity(0.85),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.primary.withOpacity(0.10),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-            title: Text(
-              app.appName,
-              style: const TextStyle(color: Colors.white),
-            ),
-          );
-        },
+                ],
+              ),
+              child: ListTile(
+                onTap: () => _openLimitPicker(app),
+                leading: app.iconBase64.isEmpty
+                    ? Icon(Icons.apps, color: theme.iconTheme.color)
+                    : Image.memory(
+                        base64Decode(app.iconBase64),
+                        width: 30,
+                        height: 30,
+                      ),
+                title: Text(
+                  app.appName,
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -8,22 +8,40 @@ class ChatScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final messages = ref.watch(chatProvider);
     final notifier = ref.read(chatProvider.notifier);
     final controller = TextEditingController();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1A20),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F1A20),
-        elevation: 0,
-        title: const Text(
-          'AI Assistant',
-          style: TextStyle(color: Colors.white),
+        backgroundColor: theme.appBarTheme.backgroundColor ?? colorScheme.primary,
+        elevation: theme.appBarTheme.elevation ?? 4,
+        title: Row(
+          children: [
+            Icon(Icons.smart_toy, color: colorScheme.onPrimary),
+            const SizedBox(width: 8),
+            Text(
+              'AI Assistant',
+              style: theme.textTheme.titleLarge?.copyWith(color: theme.appBarTheme.foregroundColor ?? colorScheme.onPrimary, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
         ),
       ),
       body: Container(
-        color: const Color(0xFF0F1A20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [theme.scaffoldBackgroundColor, theme.cardColor.withOpacity(0.95)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Column(
           children: [
             Expanded(
@@ -36,11 +54,15 @@ class ChatScreen extends ConsumerWidget {
 
                   return Align(
                     alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
                       margin: const EdgeInsets.symmetric(vertical: 6),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
-                        color: isUser ? const Color(0xFF0EA5E9) : const Color(0xFF151F28),
+                        color: isUser
+                            ? colorScheme.primary.withOpacity(0.95)
+                            : theme.cardColor,
                         borderRadius: BorderRadius.only(
                           topLeft: const Radius.circular(18),
                           topRight: const Radius.circular(18),
@@ -49,16 +71,16 @@ class ChatScreen extends ConsumerWidget {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+                            color: Colors.black.withOpacity(0.10),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Text(
                         msg.content,
-                        style: TextStyle(
-                          color: isUser ? Colors.white : Colors.white.withOpacity(0.85),
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: isUser ? colorScheme.onPrimary : theme.textTheme.bodyLarge?.color?.withOpacity(0.92),
                           fontSize: 16,
                         ),
                       ),
@@ -68,35 +90,66 @@ class ChatScreen extends ConsumerWidget {
               ),
             ),
             Container(
-              color: const Color(0xFF151F28),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.07),
+                    blurRadius: 12,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: controller,
-                      style: const TextStyle(color: Colors.white),
+                      style: theme.textTheme.bodyLarge?.copyWith(color: theme.textTheme.bodyLarge?.color, fontSize: 16),
                       decoration: InputDecoration(
                         hintText: 'Type your message...',
-                        hintStyle: TextStyle(color: Colors.white54),
+                        hintStyle: theme.textTheme.bodyLarge?.copyWith(color: theme.hintColor, fontSize: 15),
                         filled: true,
-                        fillColor: const Color(0xFF151F28),
+                        fillColor: theme.cardColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
                       ),
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (text) {
+                        if (text.isNotEmpty) {
+                          notifier.sendMessage(text);
+                          controller.clear();
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Container(
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0EA5E9),
+                      gradient: LinearGradient(
+                        colors: [colorScheme.primary, colorScheme.secondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.primary.withOpacity(0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.send, color: Colors.white),
+                      icon: Icon(Icons.send, color: colorScheme.onPrimary, size: 26),
+                      tooltip: 'Send',
                       onPressed: () {
                         if (controller.text.isNotEmpty) {
                           notifier.sendMessage(controller.text);

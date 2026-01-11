@@ -108,137 +108,164 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 1,
-        title: const Text('Edit Habit', style: TextStyle(color: Colors.black87)),
+        backgroundColor: theme.appBarTheme.backgroundColor ?? colorScheme.primary,
+        foregroundColor: theme.appBarTheme.foregroundColor ?? colorScheme.onPrimary,
+        elevation: theme.appBarTheme.elevation,
+        title: Text('Edit Habit', style: theme.textTheme.titleLarge),
+        shape: theme.appBarTheme.shape,
       ),
       body: _habit == null
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Name
-                    const Text('Name', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter habit name',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [colorScheme.primary.withOpacity(0.08), colorScheme.secondary.withOpacity(0.08)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Name
+                      const Text('Name', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter habit name',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Icons
-                    const Text('Icon', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: icons.map((icon) {
-                          final isSelected = selectedIcon == icon['name'];
-                          return GestureDetector(
-                            onTap: () => setState(() => selectedIcon = icon['name'] as String),
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: isSelected ? Colors.blue : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Center(
-                                  child: Icon(icon['icon'] as IconData,
-                                      color: isSelected ? Colors.white : Colors.black54)),
+                      // Icons
+                      const Text('Icon', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor.withOpacity(0.85),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.primary.withOpacity(0.10),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
-                          );
-                        }).toList(),
+                          ],
+                        ),
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: icons.map((icon) {
+                            final isSelected = selectedIcon == icon['name'];
+                            return GestureDetector(
+                              onTap: () => setState(() => selectedIcon = icon['name'] as String),
+                              child: Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? colorScheme.primary : theme.cardColor,
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    if (isSelected)
+                                      BoxShadow(
+                                        color: colorScheme.primary.withOpacity(0.18),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                  ],
+                                ),
+                                child: Center(
+                                    child: Icon(icon['icon'] as IconData,
+                                        color: isSelected ? colorScheme.onPrimary : theme.iconTheme.color)),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Colors
-                    const Text('Color', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                          color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                      child: Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: colors.map((c) {
-                          final isSelected = selectedColor == c;
-                          return GestureDetector(
-                            onTap: () => setState(() => selectedColor = c),
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: _parseColor(c),
-                                shape: BoxShape.circle,
-                                border: isSelected
-                                    ? Border.all(width: 3, color: Colors.blue)
+                      // Colors
+                      const Text('Color', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                            color: theme.cardColor, borderRadius: BorderRadius.circular(12)),
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: colors.map((c) {
+                            final isSelected = selectedColor == c;
+                            return GestureDetector(
+                              onTap: () => setState(() => selectedColor = c),
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: _parseColor(c),
+                                  shape: BoxShape.circle,
+                                  border: isSelected
+                                      ? Border.all(width: 3, color: colorScheme.primary)
+                                      : null,
+                                ),
+                                child: isSelected
+                                    ? const Icon(Icons.check, color: Colors.white)
                                     : null,
                               ),
-                              child: isSelected
-                                  ? const Icon(Icons.check, color: Colors.white)
-                                  : null,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Reminder
-                    SwitchListTile(
-                      tileColor: Colors.white,
-                      title: const Text('Reminder'),
-                      value: reminder,
-                      onChanged: (v) => setState(() => reminder = v),
-                    ),
-                    ListTile(
-                      tileColor: Colors.white,
-                      title: const Text('Time'),
-                      trailing: Text(_time.format(context),
-                          style: const TextStyle(color: Colors.blue)),
-                      onTap: () async {
-                        final t = await showTimePicker(context: context, initialTime: _time);
-                        if (t != null) setState(() => _time = t);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Save Changes Button
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                            );
+                          }).toList(),
                         ),
-                        onPressed: _saveChanges,
-                        child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+
+                      // Reminder
+                      SwitchListTile(
+                        tileColor: theme.cardColor,
+                        title: const Text('Reminder'),
+                        value: reminder,
+                        onChanged: (v) => setState(() => reminder = v),
+                      ),
+                      ListTile(
+                        tileColor: theme.cardColor,
+                        title: const Text('Time'),
+                        trailing: Text(_time.format(context),
+                            style: TextStyle(color: colorScheme.primary)),
+                        onTap: () async {
+                          final t = await showTimePicker(context: context, initialTime: _time);
+                          if (t != null) setState(() => _time = t);
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Save Changes Button
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _saveChanges,
+                          child: Text('Save Changes', style: TextStyle(color: colorScheme.onPrimary)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

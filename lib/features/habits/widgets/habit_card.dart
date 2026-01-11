@@ -49,20 +49,27 @@ class _HabitCardState extends State<HabitCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
+        gradient: LinearGradient(
+          colors: [colorScheme.primary.withOpacity(0.08), colorScheme.secondary.withOpacity(0.08)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        color: theme.cardColor.withOpacity(0.85),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 3),
-          )
+            color: colorScheme.primary.withOpacity(0.10),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       child: Row(
         children: [
           Container(
@@ -78,10 +85,10 @@ class _HabitCardState extends State<HabitCard> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(10),
+              color: colorScheme.secondary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Center(child: Icon(widget.icon, color: Colors.black54)),
+            child: Center(child: Icon(widget.icon, color: colorScheme.primary)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -92,18 +99,15 @@ class _HabitCardState extends State<HabitCard> {
                   onTap: _openHabitDetails,
                   child: Text(
                     widget.habit.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: theme.textTheme.titleLarge,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.local_fire_department, size: 14, color: Colors.orange),
+                    Icon(Icons.local_fire_department, size: 14, color: colorScheme.secondary),
                     const SizedBox(width: 6),
-                    Text('${widget.streak}-day streak'),
+                    Text('${widget.streak}-day streak', style: theme.textTheme.bodySmall),
                   ],
                 ),
               ],
@@ -115,17 +119,26 @@ class _HabitCardState extends State<HabitCard> {
             child: InkWell(
               onTap: _toggleCompletion,
               customBorder: const CircleBorder(),
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isCompleted ? Colors.blue : Colors.white,
-                  border: Border.all(color: Colors.grey[300]!),
+                  color: isCompleted ? colorScheme.primary : theme.cardColor,
+                  border: Border.all(color: colorScheme.secondary.withOpacity(0.18)),
+                  boxShadow: [
+                    if (isCompleted)
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.18),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                  ],
                 ),
                 child: Center(
                   child: isCompleted
-                      ? const Icon(Icons.check, color: Colors.white, size: 20)
+                      ? Icon(Icons.check, color: colorScheme.onPrimary, size: 20)
                       : const SizedBox.shrink(),
                 ),
               ),

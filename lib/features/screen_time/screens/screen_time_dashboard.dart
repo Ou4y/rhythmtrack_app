@@ -111,42 +111,54 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
   // ================= UI =================
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final totalMinutes =
         _usages.fold<int>(0, (sum, u) => sum + u.totalMinutes);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1A20),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F1A20),
-        elevation: 0,
-        title: const Text(
+        backgroundColor: theme.appBarTheme.backgroundColor ?? colorScheme.primary,
+        elevation: theme.appBarTheme.elevation,
+        title: Text(
           "Screen Time Control",
-          style: TextStyle(color: Colors.white),
+          style: theme.textTheme.titleLarge?.copyWith(color: theme.appBarTheme.foregroundColor ?? colorScheme.onPrimary),
         ),
+        shape: theme.appBarTheme.shape,
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        color: Colors.blue,
-        backgroundColor: const Color(0xFF151F28),
-        child: _loading
-            ?  ListView(
-                physics: AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(height: 300),
-                  Center(child: CircularProgressIndicator()),
-                ],
-              )
-            : ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildSummaryCard(totalMinutes),
-                  const SizedBox(height: 20),
-                  ..._usages.map(_buildUsageTile),
-                  const SizedBox(height: 24),
-                  _buildAddLimitButton(),
-                ],
-              ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [colorScheme.primary.withOpacity(0.08), colorScheme.secondary.withOpacity(0.08)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          color: colorScheme.primary,
+          backgroundColor: theme.scaffoldBackgroundColor,
+          child: _loading
+              ?  ListView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(height: 300),
+                    Center(child: CircularProgressIndicator()),
+                  ],
+                )
+              : ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    _buildSummaryCard(totalMinutes),
+                    const SizedBox(height: 20),
+                    ..._usages.map(_buildUsageTile),
+                    const SizedBox(height: 24),
+                    _buildAddLimitButton(),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -155,20 +167,27 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF151F28),
+        color: const Color(0xFF151F28).withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Today's screen time",
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.white70, fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
             _formatMinutes(minutes),
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -249,8 +268,15 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF111827),
+          color: const Color(0xFF111827).withOpacity(0.8),
           borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

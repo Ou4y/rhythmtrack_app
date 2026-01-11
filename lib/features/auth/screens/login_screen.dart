@@ -1,117 +1,88 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../widgets/auth_textfield.dart';
-import '../widgets/primary_button.dart';
 
-import 'package:rhythmtrack_app/features/habits/screens/home_screen.dart';
+class AuthTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final TextInputType keyboardType;
+  final bool obscure;
+  final String? Function(String?)? validator;
+  final Widget? suffixIcon;
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-
-  bool _obscurePassword = true;
-
-  
-
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    try {
-      await AuthService().login(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    }  catch (e) {
- final msg = e is String ? e : 'Something went wrong.';
-ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    content: Text(msg),
-    backgroundColor: Colors.red.shade700,
-    behavior: SnackBarBehavior.floating,
-    margin: const EdgeInsets.all(12),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-  ),
-);
-
-}
-
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
+  const AuthTextField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    this.keyboardType = TextInputType.text,
+    this.obscure = false,
+    this.validator,
+    this.suffixIcon,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFEFFFF7),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscure,
+      validator: validator,
+      cursorColor: colorScheme.primary,
+      style: theme.textTheme.bodyLarge?.copyWith(
+        color: colorScheme.onSurface,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                AuthTextField(
-                  controller: emailController,
-                  hint: 'Email',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) =>
-                      v == null || !v.contains('@') ? 'Invalid email' : null,
-                ),
+      decoration: InputDecoration(
+        // ✅ REAL LABEL
+        labelText: hint,
 
-                const SizedBox(height: 16),
+        // ❗ REQUIRED for filled white fields
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
 
-                AuthTextField(
-                  controller: passwordController,
-                  hint: 'Password',
-                  obscure: _obscurePassword,
-                  validator: (v) =>
-                      v == null || v.length < 6
-                          ? 'Password must be at least 6 characters'
-                          : null,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                ),
+        // Field background (your UI)
+        filled: true,
+        fillColor: Colors.white,
 
-                const SizedBox(height: 24),
+        // ✅ KEY FIX: readable floating label
+        floatingLabelStyle: TextStyle(
+          color: colorScheme.primary,
+          fontWeight: FontWeight.w600,
+          backgroundColor: Colors.white, // <-- THIS fixes invisibility
+        ),
 
-                PrimaryButton(
-                  text: 'Login',
-                  onPressed: _login,// call the fun here so  in the main fun it call the form key  that  connect the button with  the form  pressed button go  to  key  that  check  the form  if the all the fields is fill 
-                ),
-              ],
-            ),
+        labelStyle: TextStyle(
+          color: colorScheme.onSurface.withOpacity(0.6),
+        ),
+
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: colorScheme.primary,
+            width: 1.4,
           ),
         ),
+
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: colorScheme.error,
+          ),
+        ),
+
+        suffixIcon: suffixIcon,
       ),
     );
   }
