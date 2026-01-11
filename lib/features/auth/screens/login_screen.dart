@@ -1,88 +1,176 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class AuthTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hint;
-  final TextInputType keyboardType;
-  final bool obscure;
-  final String? Function(String?)? validator;
-  final Widget? suffixIcon;
+import '../widgets/auth_textfield.dart';
+import '../widgets/primary_button.dart';
+import 'package:rhythmtrack_app/features/habits/screens/home_screen.dart';
 
-  const AuthTextField({
-    super.key,
-    required this.controller,
-    required this.hint,
-    this.keyboardType = TextInputType.text,
-    this.obscure = false,
-    this.validator,
-    this.suffixIcon,
-  });
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final supabase = Supabase.instance.client;
+
+      final response = await supabase.auth.signInWithPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
+
+      // ❗ CRITICAL CHECK — prevents wrong credentials from passing
+      if (response.session == null) {
+        throw const AuthException('Invalid email or password');
+      }
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
+        ),
+      );
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      );
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Something went wrong. Please try again.'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscure,
-      validator: validator,
-      cursorColor: colorScheme.primary,
-      style: theme.textTheme.bodyLarge?.copyWith(
-        color: colorScheme.onSurface,
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: theme.iconTheme,
       ),
-      decoration: InputDecoration(
-        // ✅ REAL LABEL
-        labelText: hint,
-
-        // ❗ REQUIRED for filled white fields
-        floatingLabelBehavior: FloatingLabelBehavior.auto,
-
-        // Field background (your UI)
-        filled: true,
-        fillColor: Colors.white,
-
-        // ✅ KEY FIX: readable floating label
-        floatingLabelStyle: TextStyle(
-          color: colorScheme.primary,
-          fontWeight: FontWeight.w600,
-          backgroundColor: Colors.white, // <-- THIS fixes invisibility
-        ),
-
-        labelStyle: TextStyle(
-          color: colorScheme.onSurface.withOpacity(0.6),
-        ),
-
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: colorScheme.primary,
-            width: 1.4,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.primary.withOpacity(0.08),
+              colorScheme.secondary.withOpacity(0.08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
-
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: colorScheme.error,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.10),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      AuthTextField(
+                        controller: emailController,
+                        hint: 'Email',
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) =>
+                            v == null || !v.contains('@')
+                                ? 'Invalid email'
+                                : null,
+                      ),
+                      const SizedBox(height: 16),
+                      AuthTextField(
+                        controller: passwordController,
+                        hint: 'Password',
+                        obscure: _obscurePassword,
+                        validator: (v) =>
+                            v == null || v.length < 6
+                                ? 'Password must be at least 6 characters'
+                                : null,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      PrimaryButton(
+                        text: _isLoading ? 'Logging in...' : 'Login',
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                _onLogin();
+                              },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
-
-        suffixIcon: suffixIcon,
       ),
     );
   }

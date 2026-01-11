@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed; // ✅ nullable
 
   const PrimaryButton({
     super.key,
@@ -15,7 +15,7 @@ class PrimaryButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 46,
-      child: Container(
+      child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           gradient: const LinearGradient(
@@ -26,6 +26,7 @@ class PrimaryButton extends StatelessWidget {
           ),
         ),
         child: ElevatedButton(
+          onPressed: onPressed, // null = disabled (correct)
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
@@ -33,7 +34,6 @@ class PrimaryButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
             ),
           ),
-          onPressed: onPressed,
           child: Text(
             text,
             style: const TextStyle(
