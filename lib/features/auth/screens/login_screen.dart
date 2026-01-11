@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/auth_textfield.dart';
 import '../widgets/primary_button.dart';
 import 'package:rhythmtrack_app/features/habits/screens/home_screen.dart';
+import 'package:rhythmtrack_app/services/notification_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -47,6 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (!mounted) return;
+
+      await NotificationService.showTestNotification();
 
       Navigator.pushReplacement(
         context,

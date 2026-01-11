@@ -14,6 +14,18 @@ class NotificationService {
     tz.initializeTimeZones();
   }
 
+  static Future<void> showTestNotification() async {
+  await _notifications.show(
+    999, // Unique ID
+    'Test Notification',
+    'Welcome! You have logged in..',
+    const NotificationDetails(
+      android: AndroidNotificationDetails('test_channel', 'Test Notifications'),
+      iOS: DarwinNotificationDetails(),
+    ),
+  );
+}
+
   static Future<void> scheduleDailyNotification({
     required int id,
     required String title,
