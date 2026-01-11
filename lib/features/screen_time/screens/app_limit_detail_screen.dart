@@ -16,12 +16,10 @@ class AppLimitDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<AppLimitDetailScreen> createState() =>
-      _AppLimitDetailScreenState();
+  State<AppLimitDetailScreen> createState() => _AppLimitDetailScreenState();
 }
 
-class _AppLimitDetailScreenState
-    extends State<AppLimitDetailScreen> {
+class _AppLimitDetailScreenState extends State<AppLimitDetailScreen> {
   late int _selectedMinutes;
   bool _saving = false;
 
@@ -34,50 +32,49 @@ class _AppLimitDetailScreenState
   Future<void> _saveLimit() async {
     setState(() => _saving = true);
 
-    final updated = AppLimit(
-      packageName: widget.limit.packageName,
-      appName: widget.limit.appName,
-      iconBase64: widget.limit.iconBase64,
-      limitMinutes: _selectedMinutes,
+    await AppLimitService.instance.saveLimit(
+      AppLimit(
+        packageName: widget.limit.packageName,
+        appName: widget.limit.appName,
+        iconBase64: widget.limit.iconBase64,
+        limitMinutes: _selectedMinutes,
+      ),
     );
-
-    await AppLimitService.instance.saveLimit(updated);
 
     if (!mounted) return;
     Navigator.pop(context, true);
   }
 
   Future<void> _deleteLimit() async {
-    final deletedLimit = widget.limit;
+    final deleted = widget.limit;
 
     await AppLimitService.instance
         .deleteLimit(widget.limit.packageName);
 
     if (!mounted) return;
-
-    // Return deleted limit to dashboard
-    Navigator.pop(context, deletedLimit);
+    Navigator.pop(context, deleted);
   }
 
   @override
   Widget build(BuildContext context) {
-    final used = widget.usage.totalMinutes;
-    final ratio =
-        (used / _selectedMinutes).clamp(0.0, 1.0);
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    final int used = widget.usage.totalMinutes;
+
+    // ✅ FIXED: force double type
+    final double ratio = _selectedMinutes == 0
+        ? 0.0
+        : (used / _selectedMinutes).clamp(0.0, 1.0).toDouble();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1A20),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F1A20),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          "App Limit",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('App Limit'),
+        shape: theme.appBarTheme.shape,
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete, color: Color.fromARGB(255, 216, 49, 37)),
+            icon: Icon(Icons.delete, color: cs.error),
             onPressed: _saving ? null : _deleteLimit,
           ),
         ],
@@ -86,85 +83,98 @@ class _AppLimitDetailScreenState
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            // ---------- APP INFO ----------
             Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                color: Colors.white10,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: widget.limit.iconBase64.isEmpty
-                  ? const Icon(Icons.apps,
-                      color: Colors.white, size: 40)
-                  : Image.memory(
-                      base64Decode(widget.limit.iconBase64),
-                    ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              widget.limit.appName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              "$used min used today",
-              style: const TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 30),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: ratio,
-                minHeight: 6,
-                backgroundColor: Colors.white12,
-                color: ratio >= 1
-                    ? Colors.red
-                    : ratio >= 0.8
-                        ? Colors.orange
-                        : Colors.green,
+              padding: const EdgeInsets.all(20),
+              decoration: _surface(context),
+              child: Column(
+                children: [
+                  widget.limit.iconBase64.isEmpty
+                      ? Icon(
+                          Icons.apps,
+                          size: 42,
+                          color: theme.iconTheme.color,
+                        )
+                      : Image.memory(
+                          base64Decode(widget.limit.iconBase64),
+                          width: 42,
+                          height: 42,
+                        ),
+                  const SizedBox(height: 12),
+                  Text(
+                    widget.limit.appName,
+                    style: theme.textTheme.titleLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$used min used today',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 30),
+
+            const SizedBox(height: 24),
+
+            // ---------- PROGRESS ----------
+            LinearProgressIndicator(
+              value: ratio,
+              minHeight: 6,
+              backgroundColor: cs.primary.withOpacity(0.2),
+              color: ratio >= 1
+                  ? cs.error
+                  : ratio >= 0.8
+                      ? cs.secondary
+                      : cs.primary,
+            ),
+
+            const SizedBox(height: 24),
+
+            // ---------- LIMIT ----------
             Text(
-              "Daily limit: $_selectedMinutes min",
-              style: const TextStyle(color: Colors.white),
+              'Daily limit: $_selectedMinutes min',
+              style: theme.textTheme.bodyMedium,
             ),
-            Slider(
-              value: _selectedMinutes.toDouble(),
-              min: 5,
-              max: 180,
-              divisions: 35,
-              onChanged: _saving
-                  ? null
-                  : (v) =>
-                      setState(() => _selectedMinutes = v.round()),
+
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: cs.primary,
+                inactiveTrackColor: cs.primary.withOpacity(0.3),
+                thumbColor: cs.primary,
+                overlayColor: cs.primary.withOpacity(0.15),
+              ),
+              child: Slider(
+                value: _selectedMinutes.toDouble(),
+                min: 5,
+                max: 180,
+                divisions: 35,
+                onChanged: _saving
+                    ? null
+                    : (v) =>
+                        setState(() => _selectedMinutes = v.round()),
+              ),
             ),
+
             const Spacer(),
+
+            // ---------- SAVE ----------
             SizedBox(
               width: double.infinity,
+              height: 52,
               child: ElevatedButton(
-                onPressed: _saving ? null : _saveLimit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
+                  backgroundColor: cs.primary,
                 ),
+                onPressed: _saving ? null : _saveLimit,
                 child: _saving
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
+                    ? CircularProgressIndicator(
+                        color: cs.onPrimary,
                       )
-                    : const Text(
-                        "Save Changes",
+                    : Text(
+                        'Save Changes',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
+                          color: cs.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -173,6 +183,24 @@ class _AppLimitDetailScreenState
           ],
         ),
       ),
+    );
+  }
+
+  // ---------- SHARED SURFACE ----------
+  BoxDecoration _surface(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    return BoxDecoration(
+      color: theme.cardColor,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: cs.primary.withOpacity(0.08),
+          blurRadius: 16,
+          offset: const Offset(0, 6),
+        ),
+      ],
     );
   }
 }

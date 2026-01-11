@@ -13,6 +13,7 @@ class EditHabitScreen extends ConsumerStatefulWidget {
 
 class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
   final TextEditingController _nameController = TextEditingController();
+
   Habit? _habit;
   String selectedIcon = 'meditation';
   String selectedColor = '#4CAF50';
@@ -54,27 +55,32 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
       selectedColor = '#${h.color.toRadixString(16).substring(2).toUpperCase()}';
       selectedIcon = h.icon;
       reminder = h.reminderEnabled;
+
       if (h.reminderTime != null) {
         final parts = h.reminderTime!.split(':');
         if (parts.length == 2) {
-          _time = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+          _time = TimeOfDay(
+            hour: int.parse(parts[0]),
+            minute: int.parse(parts[1]),
+          );
         }
       }
+
       if (mounted) setState(() {});
     }
   }
 
-  Color _parseColor(String colorString) {
+  Color _parseColor(String hex) {
     try {
-      return Color(int.parse('0xFF${colorString.replaceFirst('#', '')}'));
+      return Color(int.parse('0xFF${hex.replaceFirst('#', '')}'));
     } catch (_) {
       return Colors.grey;
     }
   }
 
-  int _colorToInt(String colorString) {
+  int _colorToInt(String hex) {
     try {
-      return int.parse('0xFF${colorString.replaceFirst('#', '')}');
+      return int.parse('0xFF${hex.replaceFirst('#', '')}');
     } catch (_) {
       return 0xFF9E9E9E;
     }
@@ -85,8 +91,8 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
 
     final updated = _habit!.copyWith(
       name: _nameController.text.trim(),
-      color: _colorToInt(selectedColor),
       icon: selectedIcon,
+      color: _colorToInt(selectedColor),
       reminderEnabled: reminder,
       reminderTime:
           '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}',
@@ -96,8 +102,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
     await ref.read(habitProvider.notifier).loadHabits();
 
     if (!mounted) return;
-
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.of(context).pop();
   }
 
   @override
@@ -106,169 +111,200 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
     super.dispose();
   }
 
+  // ───────────────────────── UI ─────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final cs = theme.colorScheme;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: theme.appBarTheme.backgroundColor ?? colorScheme.primary,
-        foregroundColor: theme.appBarTheme.foregroundColor ?? colorScheme.onPrimary,
-        elevation: theme.appBarTheme.elevation,
         title: Text('Edit Habit', style: theme.textTheme.titleLarge),
         shape: theme.appBarTheme.shape,
       ),
       body: _habit == null
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [colorScheme.primary.withOpacity(0.08), colorScheme.secondary.withOpacity(0.08)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Name
-                      const Text('Name', style: TextStyle(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      TextField(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _section(
+                      context,
+                      title: 'Habit Name',
+                      child: TextField(
                         controller: _nameController,
+                        textCapitalization: TextCapitalization.sentences,
                         decoration: const InputDecoration(
                           hintText: 'Enter habit name',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                    ),
 
-                      // Icons
-                      const Text('Icon', style: TextStyle(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor.withOpacity(0.85),
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.primary.withOpacity(0.10),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: icons.map((icon) {
-                            final isSelected = selectedIcon == icon['name'];
-                            return GestureDetector(
-                              onTap: () => setState(() => selectedIcon = icon['name'] as String),
-                              child: Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: isSelected ? colorScheme.primary : theme.cardColor,
-                                  borderRadius: BorderRadius.circular(14),
-                                  boxShadow: [
-                                    if (isSelected)
-                                      BoxShadow(
-                                        color: colorScheme.primary.withOpacity(0.18),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                  ],
+                    _section(
+                      context,
+                      title: 'Icon',
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: icons.map((icon) {
+                          final selected = selectedIcon == icon['name'];
+                          return GestureDetector(
+                            onTap: () =>
+                                setState(() => selectedIcon = icon['name']),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? cs.primary
+                                    : theme.cardColor,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: selected
+                                      ? cs.primary
+                                      : cs.outline.withOpacity(0.3),
                                 ),
-                                child: Center(
-                                    child: Icon(icon['icon'] as IconData,
-                                        color: isSelected ? colorScheme.onPrimary : theme.iconTheme.color)),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Colors
-                      const Text('Color', style: TextStyle(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                            color: theme.cardColor, borderRadius: BorderRadius.circular(12)),
-                        child: Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: colors.map((c) {
-                            final isSelected = selectedColor == c;
-                            return GestureDetector(
-                              onTap: () => setState(() => selectedColor = c),
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: _parseColor(c),
-                                  shape: BoxShape.circle,
-                                  border: isSelected
-                                      ? Border.all(width: 3, color: colorScheme.primary)
-                                      : null,
-                                ),
-                                child: isSelected
-                                    ? const Icon(Icons.check, color: Colors.white)
-                                    : null,
+                              child: Icon(
+                                icon['icon'],
+                                color: selected
+                                    ? cs.onPrimary
+                                    : theme.iconTheme.color,
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Reminder
-                      SwitchListTile(
-                        tileColor: theme.cardColor,
-                        title: const Text('Reminder'),
-                        value: reminder,
-                        onChanged: (v) => setState(() => reminder = v),
-                      ),
-                      ListTile(
-                        tileColor: theme.cardColor,
-                        title: const Text('Time'),
-                        trailing: Text(_time.format(context),
-                            style: TextStyle(color: colorScheme.primary)),
-                        onTap: () async {
-                          final t = await showTimePicker(context: context, initialTime: _time);
-                          if (t != null) setState(() => _time = t);
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Save Changes Button
-                      SizedBox(
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: colorScheme.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
                             ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+
+                    _section(
+                      context,
+                      title: 'Color',
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: colors.map((c) {
+                          final selected = selectedColor == c;
+                          return GestureDetector(
+                            onTap: () =>
+                                setState(() => selectedColor = c),
+                            child: Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _parseColor(c),
+                                border: Border.all(
+                                  width: selected ? 3 : 1,
+                                  color: selected
+                                      ? cs.primary
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: selected
+                                  ? const Icon(Icons.check,
+                                      color: Colors.white)
+                                  : null,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+
+                    _section(
+                      context,
+                      title: 'Reminder',
+                      child: Column(
+                        children: [
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            value: reminder,
+                            title: const Text('Enable reminder'),
+                            onChanged: (v) =>
+                                setState(() => reminder = v),
                           ),
-                          onPressed: _saveChanges,
-                          child: Text('Save Changes', style: TextStyle(color: colorScheme.onPrimary)),
+                          if (reminder)
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Time'),
+                              trailing: Text(
+                                _time.format(context),
+                                style: TextStyle(color: cs.primary),
+                              ),
+                              onTap: () async {
+                                final t = await showTimePicker(
+                                  context: context,
+                                  initialTime: _time,
+                                );
+                                if (t != null) setState(() => _time = t);
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    SizedBox(
+                      height: 52,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cs.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: _saveChanges,
+                        child: Text(
+                          'Save Changes',
+                          style: TextStyle(
+                            color: cs.onPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _section(BuildContext context,
+      {required String title, required Widget child}) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: cs.primary.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
     );
   }
 }

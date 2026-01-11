@@ -6,88 +6,98 @@ class PermissionExplainerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1A20),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // ICON
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                shape: BoxShape.circle,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // ICON SURFACE
+              Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.timer,
+                  size: 64,
+                  color: colorScheme.primary,
+                ),
               ),
-              child: const Icon(
-                Icons.timer,
-                size: 70,
-                color: Colors.blue,
+
+              const SizedBox(height: 32),
+
+              // TITLE
+              Text(
+                'Enable Usage Access',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
 
-            const SizedBox(height: 40),
+              const SizedBox(height: 12),
 
-            // TITLE
-            const Text(
-              "Enable Usage Access",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              // DESCRIPTION
+              Text(
+                'RhythmTrack needs Usage Access to track your screen time '
+                'and help you build better daily habits.\n\n'
+                'Your data stays private and is never shared.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onBackground.withOpacity(0.7),
+                ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 36),
 
-            // DESCRIPTION
-            const Text(
-              "RhythmTrack needs Usage Access to track your app usage and screen time. "
-              "Your data stays private and is only used to help you build better habits.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // BUTTON
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                UsagePermissionChannel.openUsageSettings();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              // PRIMARY ACTION
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () {
+                    UsagePermissionChannel.openUsageSettings();
+                  },
+                  child: Text(
+                    'Open Settings',
+                    style: TextStyle(
+                      color: colorScheme.onPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                child: const Text(
-                  "Open Settings",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
+
+              const SizedBox(height: 16),
+
+              // SECONDARY ACTION
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  'Not now',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onBackground.withOpacity(0.6),
+                  ),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // TEXT BUTTON
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text(
-                "Not now",
-                style: TextStyle(color: Colors.white54),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
