@@ -4,6 +4,10 @@ import '../providers/habit_provider.dart';
 import 'add_habit_screen.dart';
 import '../widgets/habit_card.dart';
 import 'habit_details_screen.dart';
+import 'package:rhythmtrack_app/features/auth/screens/welcome_screen.dart';
+import 'package:rhythmtrack_app/features/auth/services/auth_service.dart';
+
+
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -116,6 +120,47 @@ class HomeScreen extends ConsumerWidget {
                 Navigator.pushNamed(context, '/ai_chat');
               },
             ),
+       
+ListTile(
+  leading: const Icon(Icons.logout),
+  title: const Text('Logout'),
+  onTap: () {
+    Navigator.pop(context); 
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(); 
+
+                await AuthService().logout();
+
+                if (!context.mounted) return;
+
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                  (_) => false,
+                );
+              },
+              child: const Text('Logout', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  },
+),
+
           ],
         ),
       ),

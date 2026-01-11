@@ -20,6 +20,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscurePassword = true;
 
+  
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -33,11 +35,20 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    }
+    }  catch (e) {
+ final msg = e is String ? e : 'Something went wrong.';
+ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(
+    content: Text(msg),
+    backgroundColor: Colors.red.shade700,
+    behavior: SnackBarBehavior.floating,
+    margin: const EdgeInsets.all(12),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+  ),
+);
+
+}
+
   }
 
   @override
@@ -95,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 PrimaryButton(
                   text: 'Login',
-                  onPressed: _login,
+                  onPressed: _login,// call the fun here so  in the main fun it call the form key  that  connect the button with  the form  pressed button go  to  key  that  check  the form  if the all the fields is fill 
                 ),
               ],
             ),
