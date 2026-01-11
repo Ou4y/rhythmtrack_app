@@ -29,7 +29,7 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
-  await OpenAIKeyStore.saveKey('');
+  await OpenRouterKeyStore.saveKey('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');
   runApp(const ProviderScope(child: MyApp()));
 }
 
