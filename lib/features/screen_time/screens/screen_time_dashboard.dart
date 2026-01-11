@@ -158,17 +158,17 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
 
     final hasLimit = max != null && max > 0;
     final progress =
-        hasLimit ? (used / max).clamp(0.0, 1.0) : 0.0;
+        hasLimit ? (used / max!).clamp(0.0, 1.0) : 0.0;
 
     final remaining =
-        hasLimit ? (max - used).clamp(0, max) : 0;
+        hasLimit ? (max! - used).clamp(0, max) : 0;
 
     Color progressColor;
     String statusText = '';
 
     if (!hasLimit) {
       progressColor = cs.primary;
-    } else if (used >= max) {
+    } else if (used >= max!) {
       progressColor = cs.error;
       statusText = 'Limit exceeded';
     } else if (progress >= 0.8) {
@@ -256,7 +256,7 @@ class _ScreenTimeDashboardState extends State<ScreenTimeDashboard> {
               Text(
                 '$used / $max min  •  $statusText',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: used >= max ? cs.error : null,
+                  color: used >= max! ? cs.error : null,
                 ),
               ),
               const SizedBox(height: 6),
